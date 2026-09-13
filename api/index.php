@@ -1,17 +1,14 @@
  <?php
 
-// ১. এরর ব্রাউজারে দেখানো নিশ্চিত করা
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
+// ১. লেটেস্ট এরর ট্র্যাকিং
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// ২. Autoload Load
-if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    die('Vendor autoload file is missing!');
-}
+// ২. অটোলোড ফাইল কানেক্ট
 require __DIR__ . '/../vendor/autoload.php';
 
-// ৩. Temp Directories
+// ৩. Vercel Temp Storage তৈরি (স্টোরেজ ইস্যু এড়াতে)
 $dirs = [
     '/tmp/storage/bootstrap/cache',
     '/tmp/storage/framework/views',
@@ -25,32 +22,39 @@ foreach ($dirs as $dir) {
     }
 }
 
-// ৪. Env variables
+// ৪. এনভায়রনমেন্ট পাথ সেটআপ
 putenv('APP_ENV=production');
 putenv('APP_DEBUG=true');
 putenv('APP_KEY=base64:8XF7tn4kB/cCV4IH+2NHOFblswou0uKQ49Whz13IVJk=');
 putenv('APP_STORAGE_PATH=/tmp/storage');
-putenv('APP_CONFIG_CACHE=/tmp/storage/bootstrap/cache/config.php');
-putenv('APP_SERVICES_CACHE=/tmp/storage/bootstrap/cache/services.php');
-putenv('APP_PACKAGES_CACHE=/tmp/storage/bootstrap/cache/packages.php');
-putenv('APP_ROUTES_CACHE=/tmp/storage/bootstrap/cache/routes.php');
 putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
 
-// ৫. Laravel App Bootstrap & Error Catching
-try {
-    $app = require_once __DIR__ . '/../bootstrap/app.php';
-    $app->useStoragePath('/tmp/storage');
+// ৫. অ্যাপ্লিকেশন ইনস্ট্যান্স তৈরি
+$app = require_once __DIR__ . '/../bootstrap/app.php';
+$app->useStoragePath('/tmp/storage');
 
-    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-    $response = $kernel->handle(
-        $request = Illuminate\Http\Request::capture()
-    );
+// ৬. রিকোয়েস্ট প্রসেসিং ও আউটপুট ডেলিভারি
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 
-    $response->send();
-    $kernel->terminate($request, $response);
-} catch (Throwable $e) {
-    echo "<h1>Laravel Execution Error:</h1>";
-    echo "<p><strong>Message:</strong> " . $e->getMessage() . "</p>";
-    echo "<p><strong>File:</strong> " . $e->getFile() . " on line " . $e->getLine() . "</p>";
-    echo "<pre>" . $e->getTraceAsString() . "</pre>";
+$request = Illuminate\Http\Request::capture();
+$response = $kernel->handle($request);
+
+// রেসপন্স হেডার পাঠাল
+foreach ($response->headers->allPreserveCaseWithoutCookies() as $name => $values) {
+    foreach ($values as $value) {
+        header($name . ': ' . $value, false);
+    }
 }
+
+// কুকি হ্যান্ডলিং
+foreach ($response->headers->getCookies() as $cookie) {
+    header('Set-Cookie: ' . $cookie->asString(), false);
+}
+
+// এইচটিটিপি স্ট্যাটাস কোড সেট করা
+http_response_code($response->getStatusCode());
+
+// সরাসরি বডি প্রিন্ট করা (Blank page বন্ধ করার মূল ট্রিক)
+echo $response->getContent();
+
+$kernel->terminate($request, $response);
