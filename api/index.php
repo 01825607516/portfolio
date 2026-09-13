@@ -1,6 +1,9 @@
  <?php
 
-// ১. /tmp ফোল্ডারের অধীনে প্রয়োজনীয় ডিরেক্টরিগুলো তৈরি করুন
+// ১. Autoload ফাইলটি প্রথমে লোড করুন (composer dependencies এর জন্য)
+require __DIR__ . '/../vendor/autoload.php';
+
+// ২. /tmp ফোল্ডারের অধীনে প্রয়োজনীয় ডিরেক্টরি তৈরি করুন
 $dirs = [
     '/tmp/storage/bootstrap/cache',
     '/tmp/storage/framework/views',
@@ -14,7 +17,7 @@ foreach ($dirs as $dir) {
     }
 }
 
-// ২. এনভায়রনমেন্ট ভেরিয়েবল সেট করুন
+// ৩. Environment settings
 putenv('APP_STORAGE_PATH=/tmp/storage');
 putenv('APP_CONFIG_CACHE=/tmp/storage/bootstrap/cache/config.php');
 putenv('APP_SERVICES_CACHE=/tmp/storage/bootstrap/cache/services.php');
@@ -24,13 +27,13 @@ putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
 
 $_ENV['APP_STORAGE_PATH'] = '/tmp/storage';
 
-// ৩. Laravel Application ইনিশিয়ালাইজ করার পর Dynamic Storage Path সেট করুন
+// ৪. Laravel App Bootstrap করা
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 
-// Laravel-এর storagePath পয়েন্টারটি /tmp/storage-এ রিডাইরেক্ট করা
+// storagePath /tmp ফোল্ডারে নির্দেশ করা
 $app->useStoragePath('/tmp/storage');
 
-// ৪. রিকোয়েস্ট হ্যান্ডেল করুন
+// ৫. Request হ্যান্ডেল করা
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 
 $response = $kernel->handle(
