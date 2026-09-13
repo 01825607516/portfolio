@@ -1,6 +1,9 @@
  <?php
 
-// ১. Autoload ফাইলটি প্রথমে লোড করুন (composer dependencies এর জন্য)
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+ 
 require __DIR__ . '/../vendor/autoload.php';
 
 // ২. /tmp ফোল্ডারের অধীনে প্রয়োজনীয় ডিরেক্টরি তৈরি করুন

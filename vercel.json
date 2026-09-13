@@ -1,11 +1,19 @@
  {
   "version": 2,
+  "framework": null,
   "builds": [
     {
       "src": "api/index.php",
       "use": "vercel-php@0.6.2",
       "config": {
         "composer": true
+      }
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public/build"
       }
     }
   ],
