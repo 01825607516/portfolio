@@ -1,4 +1,4 @@
- <?php
+<?php
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
@@ -19,13 +19,15 @@ foreach ($dirs as $dir) {
     }
 }
 
-// Environment settings
-putenv('APP_ENV=production');
-putenv('APP_DEBUG=true');
-putenv('APP_KEY=base64:8XF7tn4kB/cCV4IH+2NHOFblswou0uKQ49Whz13IVJk=');
-putenv('APP_STORAGE_PATH=/tmp/storage');
-putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
+// Load environment variables from .env file
+$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+try {
+    $dotenv->load();
+} catch (\Throwable $e) {
+    // .env file not found, use defaults
+}
 
+// Use environment variables, not hardcoded
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 
 // Storage path overriding
